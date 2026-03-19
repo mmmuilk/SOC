@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能终端精细化节能减排系统 · 电池动态建模平台</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  /* Light Theme */
+  :root[data-theme="light"] {
+    --bg: #f5f7fa;
+    --bg2: #ffffff;
+    --bg3: #f8f9fb;
+    --border: #e1e8ed;
+    --accent: #0077e6;
+    --accent2: #005dcc;
+    --accent3: #0077e6;
+    --warn: #ff6b35;
+    --warn2: #ffc107;
+    --text: #2c3e50;
+    --text2: #5a6c7d;
+    --text3: #8fa3c0;
+    --red: #ff4757;
+    --green: #28a745;
+    --yellow: #ffc107;
+    --blue: #0077e6;
+    --purple: #6f42c1;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans SC', sans-serif;
+  }
+
+  /* Dark Theme (Default) */
+  :root, :root[data-theme="dark"] {
+    --bg: #0a0f1a;
+    --bg2: #0f1729;
+    --bg3: #161f35;
+    --border: #1e2d4a;
+    --accent: #00d4aa;
+    --accent2: #00a87f;
+    --accent3: #0066ff;
+    --warn: #ff6b35;
+    --warn2: #ffd166;
+    --text: #e2eaf5;
+    --text2: #8fa3c0;
+    --text3: #4d6080;
+    --red: #ff4757;
+    --green: #00d4aa;
+    --yellow: #ffd166;
+    --blue: #4fa3ff;
+    --purple: #b28bff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans SC', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid pattern background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: transparent;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative; z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    color: white;
+  }
+
+  .logo-text h1 {
+    font-size: 16px; font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+
+  .logo-text p {
+    font-size: 11px; color: var(--text3); font-family: var(--mono);
+    margin-top: 2px;
+  }
+
+  .header-badges {
+    display: flex; gap: 8px;
+  }
+
+  .badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-green { background: rgba(0,119,230,0.08); color: var(--accent); border: 1px solid rgba(0,119,230,0.2); }
+  .badge-blue  { background: rgba(0,119,230,0.08); color: var(--blue);  border: 1px solid rgba(0,119,230,0.2); }
+  .badge-pulse {
+    position: relative;
+  }
+  .badge-pulse::before {
+    content: '';
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  /* Theme Toggle Button */
+  .theme-toggle {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .theme-toggle:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,119,230,0.2); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0,119,230,0); }
+  }
+
+  /* MAIN LAYOUT */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr 280px;
+    grid-template-rows: auto auto;
+    gap: 16px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .card-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-header h3 {
+    font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text2);
+  }
+
+  .card-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: none;
+  }
+  .card-dot.orange { background: var(--warn); box-shadow: none; }
+  .card-dot.blue   { background: var(--blue);  box-shadow: none;  }
+
+  /* LEFT PANEL - CONTROLS */
+  .controls-panel { grid-column: 1; grid-row: 1 / 3; }
+
+  .control-group { margin-bottom: 20px; }
+
+  .control-label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; margin-bottom: 8px;
+    color: var(--text2);
+  }
+
+  .control-value {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    outline: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: none;
+    transition: transform 0.1s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  .select-group { margin-bottom: 20px; }
+
+  .select-group label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 8px; }
+
+  select {
+    width: 100%;
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-family: var(--sans);
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+
+  select:focus { border-color: var(--accent); }
+
+  .scenario-btns {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6px; margin-top: 4px;
+  }
+
+  .scenario-btn {
+    padding: 8px 4px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text2);
+    font-size: 11px;
+    font-family: var(--sans);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .scenario-btn:hover, .scenario-btn.active {
+    background: rgba(0,119,230,0.08);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .run-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--sans);
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .run-btn:hover {
+    background: var(--accent2);
+    box-shadow: 0 2px 8px rgba(0,119,230,0.15);
+  }
+
+  .run-btn:active { transform: translateY(0); }
+
+  /* CENTER - SOC CHART */
+  .soc-panel { grid-column: 2; grid-row: 1; }
+
+  .tte-display {
+    display: flex; align-items: baseline; gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .tte-value {
+    font-size: 48px;
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .tte-unit { font-size: 16px; color: var(--text3); }
+
+  .tte-subtitle { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+  .tte-row {
+    display: flex; gap: 16px; margin-bottom: 20px;
+  }
+
+  .tte-stat {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    flex: 1;
+  }
+
+  .tte-stat-val {
+    font-size: 18px; font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+  }
+
+  .tte-stat-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  canvas { width: 100%; display: block; }
+
+  /* RIGHT - POWER BREAKDOWN */
+  .power-panel { grid-column: 3; grid-row: 1; }
+
+  .power-bar-group { margin-bottom: 12px; }
+
+  .power-bar-label {
+    display: flex; justify-content: space-between;
+    font-size: 11px; margin-bottom: 5px; color: var(--text2);
+  }
+
+  .power-bar-label span:last-child { font-family: var(--mono); color: var(--text); }
+
+  .power-bar-track {
+    background: var(--border);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+  }
+
+  .power-bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  /* BOTTOM PANELS */
+  .sensitivity-panel { grid-column: 2; grid-row: 2; }
+  .reco-panel        { grid-column: 3; grid-row: 2; }
+
+  /* SENSITIVITY TABLE */
+  .sens-grid {
+    display: grid;
+    grid-template-columns: 1fr 80px 80px 60px;
+    gap: 4px;
+    font-size: 11px;
+  }
+
+  .sens-header {
+    color: var(--text3);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sens-row { display: contents; }
+
+  .sens-cell {
+    padding: 7px 4px;
+    border-bottom: 1px solid rgba(30,45,74,0.5);
+    display: flex; align-items: center;
+  }
+
+  .sens-cell:first-child { color: var(--text2); }
+
+  .impact-bar {
+    display: inline-block;
+    height: 4px;
+    border-radius: 2px;
+    margin-right: 4px;
+  }
+
+  .tag {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+
+  .tag-ctrl  { background: rgba(0,119,230,0.1); color: var(--accent); }
+  .tag-semi  { background: rgba(255,193,7,0.1); color: var(--yellow); }
+  .tag-none  { background: rgba(141,160,195,0.1); color: var(--text3); }
+
+  /* RECOMMENDATIONS */
+  .reco-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .reco-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 10px 12px;
+    background: var(--bg3);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .reco-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; color: var(--accent); }
+
+  .reco-content { flex: 1; }
+
+  .reco-title { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+
+  .reco-desc { color: var(--text3); font-size: 11px; line-height: 1.5; }
+
+  .reco-gain {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  /* SOC gauge */
+  .soc-gauge-row {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .gauge-wrap {
+    position: relative;
+    width: 100px; height: 100px;
+    flex-shrink: 0;
+  }
+
+  .gauge-wrap svg { width: 100%; height: 100%; }
+
+  .gauge-center {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+
+  .gauge-pct {
+    font-size: 20px; font-weight: 700;
+    font-family: var(--mono);
+    color: var(--accent);
+  }
+
+  .gauge-label { font-size: 9px; color: var(--text3); }
+
+  /* animated glow on chart */
+  .chart-container {
+    position: relative;
+  }
+
+  .chart-container::after {
+    content: '';
+    position: absolute;
+    bottom: 30px; left: 60px; right: 20px;
+    height: 0px;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex; gap: 20px;
+    padding: 10px 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 16px;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text3);
+    align-items: center;
+  }
+
+  .status-item { display: flex; gap: 6px; align-items: center; }
+  .status-dot  { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  .divider { width: 1px; height: 14px; background: var(--border); }
+
+  /* model info chips */
+  .model-chips {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .chip {
+    padding: 3px 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 10px;
+    color: var(--text3);
+    font-family: var(--mono);
+  }
+
+  /* Responsive tweak */
+  @media (max-width: 1100px) {
+    .main-grid {
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: auto auto auto;
+    }
+    .power-panel { grid-column: 1; grid-row: 2; }
+    .sensitivity-panel { grid-column: 2; grid-row: 2; }
+    .reco-panel { grid-column: 1 / 3; grid-row: 3; }
+  }
+
+  .section-title {
+    font-size: 12px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  
+  /* Smooth transition for theme changes */
+  * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+</style>
+</head>
+<body data-theme="dark">
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-battery-full"></i></div>
+      <div class="logo-text">
+        <h1>智能终端精细化节能减排系统</h1>
+        <p>Lithium-Ion Battery SOC Dynamic Modeling Platform · CUMT 2025</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-green badge-pulse" style="padding-left:22px">● 实时仿真</span>
+      <span class="badge badge-green">SOC 物理模型</span>
+      <span class="badge badge-blue">节能减排 · 双碳目标</span>
+    </div>
+    <button class="theme-toggle" id="themeToggle" title="切换主题" onclick="toggleTheme()">
+      <i class="fas fa-moon"></i>
+    </button>
+  </header>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LEFT: CONTROLS -->
+    <div class="card controls-panel">
+      <div class="card-header">
+        <div class="card-dot"></div>
+        <h3>使用场景参数</h3>
+      </div>
+
+      <div class="section-title">快速场景切换</div>
+      <div class="scenario-btns" id="scenarioBtns">
+        <button class="scenario-btn active" onclick="loadScenario('standby',this)"><i class="fas fa-power-off"></i> 待机</button>
+        <button class="scenario-btn" onclick="loadScenario('browsing',this)"><i class="fas fa-globe"></i> 网页浏览</button>
+        <button class="scenario-btn" onclick="loadScenario('video',this)"><i class="fas fa-play"></i> 视频播放</button>
+        <button class="scenario-btn" onclick="loadScenario('gaming',this)"><i class="fas fa-gamepad"></i> 3D游戏</button>
+        <button class="scenario-btn" onclick="loadScenario('navigation',this)"><i class="fas fa-map"></i> 导航</button>
+        <button class="scenario-btn" onclick="loadScenario('videocall',this)"><i class="fas fa-video"></i> 视频通话</button>
+      </div>
+
+      <hr style="border:none; border-top:1px solid var(--border); margin: 18px 0;">
+
+      <div class="section-title">精细调节</div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span><i class="fas fa-sun"></i> 屏幕亮度</span>
+          <span class="control-value" id="brightnessVal">70%</span>
+        </div>
+        <input type="range" id="brightness" min="10" max="100" value="70" oninput="updateVal('brightness','brightnessVal','%')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span><i class="fas fa-laptop"></i> 刷新率</span>
+          <span class="control-value" id="refreshVal">60 Hz</span>
+        </div>
+        <input type="range" id="refresh" min="0" max="2" value="0" step="1" oninput="updateRefresh()">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span><i class="fas fa-cog"></i> CPU 负载</span>
+          <span class="control-value" id="cpuVal">30%</span>
+        </div>
+        <input type="range" id="cpu" min="0" max="100" value="30" oninput="updateVal('cpu','cpuVal','%')">
+      </div>
+
+      <div class="select-group">
+        <label><i class="fas fa-signal"></i> 网络制式</label>
+        <select id="networkType" onchange="simulate()">
+          <option value="wifi">WiFi（0.08 W）</option>
+          <option value="4g">4G LTE（0.35 W）</option>
+          <option value="5g">5G NR（0.80 W）</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span><i class="fas fa-broadcast-tower"></i> 信号强度</span>
+          <span class="control-value" id="rssiVal">-50 dBm</span>
+        </div>
+        <input type="range" id="rssi" min="-120" max="-30" value="-50" oninput="updateRssi()">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span><i class="fas fa-thermometer-half"></i> 环境温度</span>
+          <span class="control-value" id="tempVal">25 °C</span>
+        </div>
+        <input type="range" id="temp" min="-10" max="45" value="25" oninput="updateVal('temp','tempVal',' °C')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span><i class="fas fa-sync"></i> 电池循环次数</span>
+          <span class="control-value" id="cycleVal">0 次</span>
+        </div>
+        <input type="range" id="cycles" min="0" max="1000" value="0" oninput="updateVal('cycles','cycleVal',' 次')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span><i class="fas fa-battery-half"></i> 初始电量</span>
+          <span class="control-value" id="initSocVal">100%</span>
+        </div>
+        <input type="range" id="initSoc" min="10" max="100" value="100" oninput="updateVal('initSoc','initSocVal','%')">
+      </div>
+
+      <button class="run-btn" onclick="simulate()"><i class="fas fa-play"></i> 运行仿真</button>
+
+      <div class="model-chips">
+        <span class="chip">库仑计数法</span>
+        <span class="chip">Arrhenius温度修正</span>
+        <span class="chip">DVFS热节流</span>
+        <span class="chip">SOH老化模型</span>
+      </div>
+    </div>
+
+    <!-- CENTER: SOC CHART -->
+    <div class="card soc-panel">
+      <div class="card-header">
+        <div class="card-dot blue"></div>
+        <h3>荷电状态（SOC）仿真曲线</h3>
+      </div>
+
+      <div style="display:flex; gap: 20px; align-items: flex-start; margin-bottom: 16px;">
+        <!-- Gauge -->
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#1e2d4a" stroke-width="8"/>
+            <circle id="gaugeFill" cx="50" cy="50" r="40" fill="none"
+              stroke="url(#gaugeGrad)" stroke-width="8"
+              stroke-dasharray="251.2" stroke-dashoffset="0"
+              stroke-linecap="round"
+              transform="rotate(-90 50 50)"/>
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#005dcc"/>
+                <stop offset="100%" stop-color="#0077e6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="gauge-center">
+            <div class="gauge-pct" id="gaugePct">100%</div>
+            <div class="gauge-label">当前SOC</div>
+          </div>
+        </div>
+
+        <!-- TTE stats -->
+        <div style="flex:1;">
+          <div class="tte-display">
+            <div class="tte-value" id="tteDisplay">--</div>
+            <div>
+              <div class="tte-unit">h</div>
+              <div class="tte-subtitle">预计续航时间 (TTE)</div>
+            </div>
+          </div>
+          <div class="tte-row">
+            <div class="tte-stat">
+              <div class="tte-stat-val" id="totalPower">-- W</div>
+              <div class="tte-stat-label">总功耗</div>
+            </div>
+            <div class="tte-stat">
+              <div class="tte-stat-val" id="qeff">-- mAh</div>
+              <div class="tte-stat-label">有效容量</div>
+            </div>
+            <div class="tte-stat">
+              <div class="tte-stat-val" id="sohDisp">--</div>
+              <div class="tte-stat-label">电池健康度</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOC Chart -->
+      <div class="chart-container">
+        <canvas id="socChart" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- RIGHT: POWER BREAKDOWN -->
+    <div class="card power-panel">
+      <div class="card-header">
+        <div class="card-dot orange"></div>
+        <h3>功耗解耦分析</h3>
+      </div>
+
+      <div id="powerBars"></div>
+
+      <hr style="border:none; border-top:1px solid var(--border); margin: 14px 0;">
+      <div class="section-title">耦合效应状态</div>
+
+      <div id="couplingStatus" style="font-size:11px; line-height:1.8; color:var(--text2);">
+        <!-- dynamic -->
+      </div>
+    </div>
+
+    <!-- BOTTOM CENTER: SENSITIVITY -->
+    <div class="card sensitivity-panel">
+      <div class="card-header">
+        <div class="card-dot"></div>
+        <h3>敏感性分析 · 可干预性分级</h3>
+      </div>
+
+      <div class="sens-grid">
+        <div class="sens-header">影响因素</div>
+        <div class="sens-header">TTE影响</div>
+        <div class="sens-header">节能潜力</div>
+        <div class="sens-header">可控性</div>
+
+        <div class="sens-row">
+          <div class="sens-cell"><i class="fas fa-battery-half"></i> 电池老化（0→1000次）</div>
+          <div class="sens-cell"><span class="impact-bar" style="width:50px;background:#ff4757;"></span> −20%</div>
+          <div class="sens-cell">—</div>
+          <div class="sens-cell"><span class="tag tag-none">不可控</span></div>
+        </div>
+        <div class="sens-row">
+          <div class="sens-cell"><i class="fas fa-sun"></i> 亮度（100%→50%）</div>
+          <div class="sens-cell"><span class="impact-bar" style="width:38px;background:#0077e6;"></span> +15%</div>
+          <div class="sens-cell">高（15-25%）</div>
+          <div class="sens-cell"><span class="tag tag-ctrl">可控</span></div>
+        </div>
+        <div class="sens-row">
+          <div class="sens-cell"><i class="fas fa-thermometer-half"></i> 温度（-10℃→+10℃）</div>
+          <div class="sens-cell"><span class="impact-bar" style="width:30px;background:#ffc107;"></span> ±12%</div>
+          <div class="sens-cell">—</div>
+          <div class="sens-cell"><span class="tag tag-semi">部分</span></div>
+        </div>
+        <div class="sens-row">
+          <div class="sens-cell"><i class="fas fa-broadcast-tower"></i> 信号强度（弱→强）</div>
+          <div class="sens-cell"><span class="impact-bar" style="width:20px;background:#0077e6;"></span> +8%</div>
+          <div class="sens-cell">中（5-12%）</div>
+          <div class="sens-cell"><span class="tag tag-semi">部分</span></div>
+        </div>
+        <div class="sens-row">
+          <div class="sens-cell"><i class="fas fa-laptop"></i> 刷新率（120Hz→60Hz）</div>
+          <div class="sens-cell"><span class="impact-bar" style="width:20px;background:#0077e6;"></span> +8%</div>
+          <div class="sens-cell">中（6-10%）</div>
+          <div class="sens-cell"><span class="tag tag-ctrl">可控</span></div>
+        </div>
+        <div class="sens-row">
+          <div class="sens-cell"><i class="fas fa-cog"></i> CPU负载（100%→50%）</div>
+          <div class="sens-cell"><span class="impact-bar" style="width:25px;background:#0077e6;"></span> +10%</div>
+          <div class="sens-cell">中（8-15%）</div>
+          <div class="sens-cell"><span class="tag tag-ctrl">可控</span></div>
+        </div>
+        <div class="sens-row">
+          <div class="sens-cell"><i class="fas fa-signal"></i> WiFi代替5G</div>
+          <div class="sens-cell"><span class="impact-bar" style="width:18px;background:#6f42c1;"></span> +6%</div>
+          <div class="sens-cell">中（4-8%）</div>
+          <div class="sens-cell"><span class="tag tag-ctrl">可控</span></div>
+        </div>
+        <div class="sens-row">
+          <div class="sens-cell"><i class="fas fa-tasks"></i> 后台任务管理</div>
+          <div class="sens-cell"><span class="impact-bar" style="width:8px;background:#4d6080;"></span> +3%</div>
+          <div class="sens-cell">低（2-4%）</div>
+          <div class="sens-cell"><span class="tag tag-ctrl">可控</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM RIGHT: RECO -->
+    <div class="card reco-panel">
+      <div class="card-header">
+        <div class="card-dot"></div>
+        <h3>帕累托最优策略</h3>
+      </div>
+
+      <div class="reco-list">
+        <div class="reco-item">
+          <div class="reco-icon"><i class="fas fa-bolt"></i></div>
+          <div class="reco-content">
+            <div class="reco-title">平衡配置（推荐）</div>
+            <div class="reco-desc">70%亮度 + 60Hz + WiFi优先 + 后台限制</div>
+          </div>
+          <div class="reco-gain">+35%</div>
+        </div>
+        <div class="reco-item">
+          <div class="reco-icon"><i class="fas fa-battery-full"></i></div>
+          <div class="reco-content">
+            <div class="reco-title">极限续航配置</div>
+            <div class="reco-desc">50%亮度 + 省电模式 + 60Hz + GPS按需</div>
+          </div>
+          <div class="reco-gain">+50%</div>
+        </div>
+        <div class="reco-item">
+          <div class="reco-icon"><i class="fas fa-gamepad"></i></div>
+          <div class="reco-content">
+            <div class="reco-title">体验优先配置</div>
+            <div class="reco-desc">100%亮度 + 90Hz + 5G优先 + 全性能</div>
+          </div>
+          <div class="reco-gain">+5%</div>
+        </div>
+        <div class="reco-item" style="border-color: rgba(0,119,230,0.2);">
+          <div class="reco-icon"><i class="fas fa-robot"></i></div>
+          <div class="reco-content">
+            <div class="reco-title">主动热管理（OS策略）</div>
+            <div class="reco-desc">基于热时间常数预测，提前微调频率，避免被动节流导致的总能耗增加</div>
+          </div>
+          <div class="reco-gain" style="color:var(--blue)">新机理</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-item"><div class="status-dot"></div> 模型：三层机理框架</div>
+    <div class="divider"></div>
+    <div class="status-item">核心方程：dSOC/dt = −P(t) / [V(SOC)·Q_eff(T,N)]</div>
+    <div class="divider"></div>
+    <div class="status-item">参数拟合 R² ≥ 0.9986</div>
+    <div class="divider"></div>
+    <div class="status-item">RMSE &lt; 2%</div>
+    <div class="divider"></div>
+    <div class="status-item">中国矿业大学 · 资源与地球科学学院 · 2025</div>
+  </div>
+
+</div>
+
+<script>
+// ---- THEME TOGGLE ----
+function toggleTheme() {
+  const html = document.documentElement;
+  const currentTheme = html.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  
+  // Update button icon
+  const btn = document.getElementById('themeToggle');
+  const icon = btn.querySelector('i');
+  if (newTheme === 'dark') {
+    icon.className = 'fas fa-moon';
+  } else {
+    icon.className = 'fas fa-sun';
+  }
+  
+  // Redraw charts with new theme colors
+  setTimeout(() => simulate(), 100);
+}
+
+// Initialize theme on page load
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  const html = document.documentElement;
+  html.setAttribute('data-theme', savedTheme);
+  
+  const btn = document.getElementById('themeToggle');
+  const icon = btn.querySelector('i');
+  if (savedTheme === 'dark') {
+    icon.className = 'fas fa-moon';
+  } else {
+    icon.className = 'fas fa-sun';
+  }
+}
+
+// Get theme colors for canvas rendering
+function getThemeColors() {
+  const root = document.documentElement;
+  const computedStyle = getComputedStyle(root);
+  return {
+    bg: computedStyle.getPropertyValue('--bg').trim(),
+    bg2: computedStyle.getPropertyValue('--bg2').trim(),
+    text: computedStyle.getPropertyValue('--text').trim(),
+    text2: computedStyle.getPropertyValue('--text2').trim(),
+    text3: computedStyle.getPropertyValue('--text3').trim(),
+    border: computedStyle.getPropertyValue('--border').trim(),
+    accent: computedStyle.getPropertyValue('--accent').trim(),
+  };
+}
+
+// Convert hex color to RGB
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : { r: 0, g: 0, b: 0 };
+}
+
+// ---- MODEL PARAMETERS ----
+const Qnom = 4500;  // mAh
+const Vmin = 3.0, Vmax = 4.2;
+const alphaS = 3.06, gammaS = 1.62;
+const betaS = 0.12, PscBase = 0.28;
+const Pidle = 0.2, Pmax = 4.5, delta = 1.96;
+const Pnet = { wifi: 0.08, '4g': 0.35, '5g': 0.80 };
+const lambda = 0.06, mu = 0.20, k = 1.0, rssiRef = -50;
+const gammaSig = 0.08, rssiMin = -120, rssiMax = -50;
+const alphaCold = 0.01198, alphaHot = 0.008, Topt = 25;
+const alphaN = 0.00027, alphaT = 0.0185;
+const Tth = 38, Tmax2 = 44, thetaMin = 0.35;
+const etaCpu = 0.92, etaSc = 0.38, etaNet = 0.72;
+const Cth = 100, h = 0.6, Rint = 0.08;
+const P0 = 0.03, Pother = 0.05;
+
+const barColors = {
+  base:    '#8fa3c0',
+  screen:  '#0077e6',
+  cpu:     '#6f42c1',
+  gpu:     '#6f42c1',
+  network: '#ffc107',
+  gps:     '#ff6b35',
+  other:   '#b0b8c1',
+};
+
+const scenarios = {
+  standby:   { brightness:10, refresh:0, cpu:5,  networkType:'wifi', rssi:-50, screen:0, gpu:0.05 },
+  browsing:  { brightness:70, refresh:0, cpu:30, networkType:'wifi', rssi:-60, screen:1, gpu:0.15 },
+  video:     { brightness:80, refresh:0, cpu:55, networkType:'wifi', rssi:-60, screen:1, gpu:0.45 },
+  gaming:    { brightness:100,refresh:2, cpu:95, networkType:'5g',  rssi:-70, screen:1, gpu:4.07 },
+  navigation:{ brightness:90, refresh:1, cpu:40, networkType:'4g',  rssi:-80, screen:1, gpu:0.33 },
+  videocall: { brightness:75, refresh:0, cpu:60, networkType:'wifi', rssi:-55, screen:1, gpu:0.23 },
+};
+
+const refreshHz = [60, 90, 120];
+
+function updateVal(id, labelId, unit) {
+  document.getElementById(labelId).textContent = document.getElementById(id).value + unit;
+  simulate();
+}
+
+function updateRefresh() {
+  const v = parseInt(document.getElementById('refresh').value);
+  document.getElementById('refreshVal').textContent = refreshHz[v] + ' Hz';
+  simulate();
+}
+
+function updateRssi() {
+  const v = document.getElementById('rssi').value;
+  document.getElementById('rssiVal').textContent = v + ' dBm';
+  simulate();
+}
+
+function loadScenario(name, btn) {
+  const s = scenarios[name];
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('brightness').value = s.brightness;
+  document.getElementById('brightnessVal').textContent = s.brightness + '%';
+  document.getElementById('refresh').value = s.refresh;
+  document.getElementById('refreshVal').textContent = refreshHz[s.refresh] + ' Hz';
+  document.getElementById('cpu').value = s.cpu;
+  document.getElementById('cpuVal').textContent = s.cpu + '%';
+  document.getElementById('networkType').value = s.networkType;
+  document.getElementById('rssi').value = s.rssi;
+  document.getElementById('rssiVal').textContent = s.rssi + ' dBm';
+  simulate();
+}
+
+function getParams() {
+  return {
+    brightness: parseInt(document.getElementById('brightness').value) / 100,
+    refresh:    refreshHz[parseInt(document.getElementById('refresh').value)],
+    cpu:        parseInt(document.getElementById('cpu').value) / 100,
+    netType:    document.getElementById('networkType').value,
+    rssi:       parseInt(document.getElementById('rssi').value),
+    temp:       parseInt(document.getElementById('temp').value),
+    cycles:     parseInt(document.getElementById('cycles').value),
+    initSoc:    parseInt(document.getElementById('initSoc').value) / 100,
+    screenOn:   scenarios[getCurrentScenario()] ? scenarios[getCurrentScenario()].screen : 1,
+    gpu:        scenarios[getCurrentScenario()] ? scenarios[getCurrentScenario()].gpu : 0.1,
+  };
+}
+
+function getCurrentScenario() {
+  const active = document.querySelector('.scenario-btn.active');
+  if (!active) return 'browsing';
+  const onclick = active.getAttribute('onclick');
+  const match = onclick.match(/loadScenario\('([^']+)'/);
+  return match ? match[1] : 'browsing';
+}
+
+function computeSOH(N) {
+  return Math.max(0.6, 1 - alphaN * N);
+}
+
+function computeEtaTemp(T) {
+  if (T < Topt) return 1 - alphaCold * (Topt - T);
+  return 1 - alphaHot * (T - Topt);
+}
+
+function computeQeff(T, N) {
+  return Qnom * computeSOH(N) * computeEtaTemp(T);
+}
+
+function computeV(soc) {
+  return Vmin + (Vmax - Vmin) * Math.pow(Math.max(0.001, soc), 0.5);
+}
+
+function computeTheta(T) {
+  if (T <= Tth) return 1;
+  if (T >= Tmax2) return thetaMin;
+  return (Tmax2 - T) / (Tmax2 - Tth);
+}
+
+function computeSignalExtra(rssi) {
+  return gammaSig * (rssiMax - rssi) / (rssiMax - rssiMin);
+}
+
+function computePowers(p, Tdev) {
+  const screenOn = p.screenOn !== undefined ? p.screenOn : 1;
+  const gpu = p.gpu || 0.1;
+
+  const Pbase = P0;
+  const Pscreen = screenOn * (alphaS * Math.pow(p.brightness, gammaS) + betaS * (p.refresh / 60) + PscBase);
+  const theta = computeTheta(Tdev);
+  const dU = computeSignalExtra(p.rssi);
+  const Ueff = Math.min(1, (p.cpu + dU) * theta);
+  const Pcpu = Pidle + (Pmax - Pidle) * Math.pow(Ueff, delta);
+  const PnetBase = Pnet[p.netType] || 0.08;
+  const Psignal = mu * Math.exp(-k * (p.rssi - rssiRef) / 30);
+  const Pnet_ = PnetBase + lambda * 2 + Psignal;
+  const Pgpu = gpu;
+  const Poth = Pother;
+  const total = Pbase + Pscreen + Pcpu + Pnet_ + Pgpu + Poth;
+  return { base: Pbase, screen: Pscreen, cpu: Pcpu, gpu: Pgpu, network: Pnet_, other: Poth, total };
+}
+
+function simulate() {
+  const p = getParams();
+  const Qeff = computeQeff(p.temp, p.cycles);
+  const SOH = computeSOH(p.cycles);
+
+  const dt = 60; // seconds per step
+  const maxSteps = 48 * 3600 / dt; // up to 48 hours
+  const socArr = [p.initSoc];
+  const tArr = [0];
+  let Tdev = p.temp;
+  let soc = p.initSoc;
+
+  for (let i = 0; i < maxSteps; i++) {
+    const pw = computePowers(p, Tdev);
+    const V = computeV(soc);
+    const I = pw.total / V;
+    const dSOC = -pw.total * (dt / 3600) / (V * Qeff / 1000);
+    soc += dSOC;
+    // Thermal step
+    const Qgen = etaCpu * pw.cpu + etaSc * pw.screen + etaNet * pw.network + (pw.total * pw.total * Rint / (V * V));
+    const dT = (Qgen - h * (Tdev - p.temp)) / Cth * dt;
+    Tdev = Math.min(60, Tdev + dT);
+    soc = Math.max(0, Math.min(1, soc));
+    const t = (i + 1) * dt;
+    socArr.push(soc);
+    tArr.push(t / 3600);
+    if (soc <= 0.01) break;
+  }
+
+  const tte = tArr[tArr.length - 1];
+  const pwNow = computePowers(p, p.temp);
+  const currentSOC = p.initSoc;
+
+  // Update displays
+  document.getElementById('tteDisplay').textContent = tte.toFixed(1);
+  document.getElementById('totalPower').textContent = pwNow.total.toFixed(2) + ' W';
+  document.getElementById('qeff').textContent = Math.round(Qeff) + ' mAh';
+  document.getElementById('sohDisp').textContent = (SOH * 100).toFixed(1) + '%';
+
+  // Gauge
+  const pct = Math.round(currentSOC * 100);
+  document.getElementById('gaugePct').textContent = pct + '%';
+  const circumf = 251.2;
+  document.getElementById('gaugeFill').style.strokeDashoffset = circumf * (1 - currentSOC);
+  const color = currentSOC > 0.5 ? 'url(#gaugeGrad)' : currentSOC > 0.2 ? '#ffc107' : '#ff4757';
+  document.getElementById('gaugeFill').style.stroke = currentSOC > 0.5 ? '' : color;
+
+  // Power bars
+  renderPowerBars(pwNow);
+
+  // Coupling status
+  renderCoupling(p, Tdev);
+
+  // Chart
+  renderChart(tArr, socArr, p.initSoc);
+}
+
+function renderPowerBars(pw) {
+  const items = [
+    { key: 'screen',  label: '屏幕',     icon: '<i class="fas fa-sun"></i>', val: pw.screen,  color: barColors.screen },
+    { key: 'cpu',     label: 'CPU',       icon: '<i class="fas fa-cog"></i>', val: pw.cpu,    color: barColors.cpu },
+    { key: 'gpu',     label: 'GPU',       icon: '<i class="fas fa-gamepad"></i>', val: pw.gpu,    color: barColors.gpu },
+    { key: 'network', label: '网络',      icon: '<i class="fas fa-signal"></i>', val: pw.network, color: barColors.network },
+    { key: 'base',    label: '基础待机',  icon: '<i class="fas fa-plug"></i>', val: pw.base,   color: barColors.base },
+    { key: 'other',   label: '其他后台',  icon: '<i class="fas fa-ellipsis-h"></i>',  val: pw.other,  color: barColors.other },
+  ];
+  const total = pw.total;
+  let html = '';
+  for (const it of items) {
+    const pct = Math.min(100, (it.val / total) * 100);
+    html += `
+      <div class="power-bar-group">
+        <div class="power-bar-label">
+          <span>${it.icon} ${it.label}</span>
+          <span>${it.val.toFixed(2)} W (${pct.toFixed(0)}%)</span>
+        </div>
+        <div class="power-bar-track">
+          <div class="power-bar-fill" style="width:${pct}%; background:${it.color};"></div>
+        </div>
+      </div>`;
+  }
+  html += `<div style="text-align:right; font-size:12px; color:var(--text2); margin-top:8px; font-family:var(--mono);">
+    合计：<strong style="color:var(--text)">${total.toFixed(2)} W</strong></div>`;
+  document.getElementById('powerBars').innerHTML = html;
+}
+
+function renderCoupling(p, Tdev) {
+  const theta = computeTheta(Tdev);
+  const throttleActive = Tdev > Tth;
+  const weakSignal = p.rssi < -80;
+  const highLoad = p.cpu > 0.7;
+
+  let html = '';
+  html += `<div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+    <span style="color:${throttleActive ? '#ff4757' : '#0077e6'}">●</span>
+    热节流（θ = ${(theta*100).toFixed(0)}%）${throttleActive ? ' <span style="color:#ff6b35;font-size:10px;">⚠ 已触发</span>' : '— 正常'}
+  </div>`;
+  html += `<div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+    <span style="color:${weakSignal ? '#ffc107' : '#0077e6'}">●</span>
+    信号-CPU耦合${weakSignal ? ' <span style="color:#ffc107;font-size:10px;">⚠ 弱信号增耗</span>' : '— 信号良好'}
+  </div>`;
+  html += `<div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+    <span style="color:${highLoad ? '#ffc107' : '#8fa3c0'}">●</span>
+    高负载-产热反馈${highLoad ? ' <span style="color:#ffc107;font-size:10px;">↑ 产热增加</span>' : '— 负载正常'}
+  </div>`;
+  html += `<div style="margin-top:8px; font-size:10px; color:var(--text3);">
+    设备温度：<span style="font-family:var(--mono); color:${Tdev > Tth ? '#ff6b35' : 'var(--accent)'}">
+    ${Tdev.toFixed(1)} °C</span>
+  </div>`;
+
+  document.getElementById('couplingStatus').innerHTML = html;
+}
+
+// ---- CHART RENDERING ----
+let chartCanvas, ctx;
+
+function renderChart(tArr, socArr, initSoc) {
+  chartCanvas = document.getElementById('socChart');
+  ctx = chartCanvas.getContext('2d');
+  
+  const colors = getThemeColors();
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = chartCanvas.parentElement.clientWidth;
+  const H = 220;
+  chartCanvas.width = W * dpr;
+  chartCanvas.height = H * dpr;
+  chartCanvas.style.width = W + 'px';
+  chartCanvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+
+  const pad = { top: 16, right: 20, bottom: 36, left: 52 };
+  const cW = W - pad.left - pad.right;
+  const cH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = 'transparent';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid - use theme colors
+  ctx.strokeStyle = colors.border;
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.top + cH - (i / 5) * cH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+    ctx.fillStyle = colors.text3;
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText((i * 20) + '%', pad.left - 6, y + 4);
+  }
+
+  const maxT = Math.max(...tArr, 1);
+  const ticks = maxT <= 12 ? [0,2,4,6,8,10,12] : maxT <= 24 ? [0,4,8,12,16,20,24] : [0,6,12,18,24,30,36,42,48];
+  for (const t of ticks) {
+    if (t > maxT * 1.05) break;
+    const x = pad.left + (t / maxT) * cW;
+    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + cH); ctx.stroke();
+    ctx.fillStyle = colors.text3;
+    ctx.textAlign = 'center';
+    ctx.fillText(t + 'h', x, pad.top + cH + 16);
+  }
+
+  // 20% warning line
+  const y20 = pad.top + cH - 0.2 * cH;
+  ctx.strokeStyle = 'rgba(255,107,53,0.3)';
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(pad.left, y20); ctx.lineTo(pad.left + cW, y20); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,107,53,0.5)';
+  ctx.font = '9px Noto Sans SC, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('低电量警告 20%', pad.left + 4, y20 - 4);
+
+  // Area gradient - use accent color with alpha
+  const accentRGB = hexToRgb(colors.accent);
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+  grad.addColorStop(0, `rgba(${accentRGB.r},${accentRGB.g},${accentRGB.b},0.15)`);
+  grad.addColorStop(0.5, `rgba(${accentRGB.r},${accentRGB.g},${accentRGB.b},0.05)`);
+  grad.addColorStop(1, `rgba(${accentRGB.r},${accentRGB.g},${accentRGB.b},0)`);
+
+  ctx.beginPath();
+  for (let i = 0; i < tArr.length; i++) {
+    const x = pad.left + (tArr[i] / maxT) * cW;
+    const y = pad.top + cH - socArr[i] * cH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  const lastX = pad.left + (tArr[tArr.length-1] / maxT) * cW;
+  ctx.lineTo(lastX, pad.top + cH);
+  ctx.lineTo(pad.left, pad.top + cH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // SOC Line
+  ctx.strokeStyle = colors.accent;
+  ctx.lineWidth = 2.5;
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+  ctx.beginPath();
+  for (let i = 0; i < tArr.length; i++) {
+    const x = pad.left + (tArr[i] / maxT) * cW;
+    const y = pad.top + cH - socArr[i] * cH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // End dot
+  const lastT = tArr[tArr.length-1];
+  const lastSoc = socArr[socArr.length-1];
+  const lx = pad.left + (lastT / maxT) * cW;
+  const ly = pad.top + cH - lastSoc * cH;
+  ctx.beginPath();
+  ctx.arc(lx, ly, 5, 0, Math.PI * 2);
+  ctx.fillStyle = colors.accent;
+  ctx.fill();
+  ctx.strokeStyle = colors.bg;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // TTE label
+  ctx.fillStyle = colors.accent;
+  ctx.font = 'bold 11px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('TTE = ' + lastT.toFixed(1) + 'h', Math.min(lx, W - 60), ly - 12);
+
+  // Axes labels
+  ctx.fillStyle = colors.text3;
+  ctx.font = '10px Noto Sans SC, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('时间 (小时)', pad.left + cW / 2, H - 4);
+  ctx.save();
+  ctx.translate(12, pad.top + cH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('SOC (%)', 0, 0);
+  ctx.restore();
+}
+
+// ---- INITIAL SIMULATE ----
+window.addEventListener('load', () => {
+  initTheme();
+  simulate();
+  window.addEventListener('resize', () => {
+    const p = getParams();
+    simulate();
+  });
+});
+</script>
+</body>
+</html>
